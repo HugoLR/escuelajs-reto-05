@@ -1,3 +1,4 @@
+localStorage.clear()
 const $app = document.getElementById('app');
 const $observe = document.getElementById('observe');
 const API = 'https://rickandmortyapi.com/api/character/';
@@ -6,6 +7,7 @@ const getData = api => {
   fetch(api)
     .then(response => response.json())
     .then(response => {
+      localStorage.setItem('next_fetch', response.info.next)
       const characters = response.results;
       let output = characters.map(character => {
         return `
@@ -23,9 +25,22 @@ const getData = api => {
     .catch(error => console.log(error));
 }
 
-const loadData = () => {
-  getData(API);
-}
+const loadData = async () => {
+  const urlNextFetch = localStorage.getItem('next_fetch')
+  try {
+    if(urlNextFetch === null) {
+      await getData(API);
+    } else {
+      if(urlNextFetch === '') {
+        alert('Ya no hay personajes...')
+        intersectionObserver.unobserve($observe)
+      }
+      await getData(urlNextFetch);
+    }
+  } catch(error) {
+    console.log(error)
+  }
+};
 
 const intersectionObserver = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) {
